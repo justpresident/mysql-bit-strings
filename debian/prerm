@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# NOTE: be sure you added debsums to dependencies of package
+
+
+PACKAGE=`basename $0`
+PACKAGE=${PACKAGE%.prerm}
+
+FILES_CHANGED=0
+
+declare -a files
+
+for file in `debsums -c $PACKAGE`; do
+	(( FILES_CHANGED++ ))
+	files[$FILES_CHANGED]=$file
+done
+
+if [[ $FILES_CHANGED -gt 0 ]]; then
+
+	VERSION=`dpkg -s $PACKAGE | grep '^Version' | cut -f2 -d: | tr -d "[:space:]"`
+	ARCH=`dpkg -s $PACKAGE | grep '^Architecture' | cut -f2 -d: | tr -d "[:space:]"`
+
+	DEBFILE="/var/cache/apt/archives/${PACKAGE}_${VERSION}_${ARCH}.deb"
+
+	echo
+	echo "    ,----------------------------------------------------------------------------------------------------."
+	echo "    |                                                                                                    |"
+	echo "    |                                    WARNING!                                                        |"
+	echo "    |  Package $PACKAGE has local changes which can be lost if you continue this operation"
+	echo "    |               Make sure you have a backup or that changes was committed to SVN.                    |"
+	echo "    |                                                                                                    |"
+	echo "    \`----------------------------------------------------------------------------------------------------'"
+	echo
+
+	while :; do
+		echo 
+
+		echo "Changed files:"
+		file_num=0
+		for file in ${files[*]}; do
+			(( file_num++ ))
+			echo "$file_num: $file"
+		done
+
+		if [ ! -t 1 ]; then
+			echo "Forcing exit since running in non-interactive mode"
+			exit 1;
+		fi
+
+		if [[ ! -e "$DEBFILE" ]]; then
+			echo "Note! There is no original .deb file in apt cache. We can't show you diffs of your files"
+			echo "Type 'i' to ignore changes and continue or 'a' to abort operation"
+		else
+			echo "Type 'i' to ignore changes and continue, 'a' to abort operation or a number of file to view diff"
+		fi
+
+		read -e -p "Your choice: " answer
+
+		if [[ "$answer" == "i" ]]; then
+			echo "Package going to be deleted or upgraded, changes will be lost."
+			exit 0
+		fi
+
+		if [[ "$answer" == "a" ]]; then
+			echo "Aborted"
+			exit 1
+		fi
+
+
+		if [[ "$answer" -gt "$FILES_CHANGED"  ||  "$answer" -lt 1 ]]; then
+			echo "Incorrect file number"
+		else 
+			if [[ -e "$DEBFILE" ]]; then
+				echo "Changes of ${files[$answer]}: original version vs current"
+				ar p "$DEBFILE" data.tar.gz | tar xzf - ".${files[$answer]}" -O | diff -up - ${files[$answer]}
+			else
+				echo "No source package - no diff"
+			fi
+		fi
+	done
+
+fi
+ 
+mysql -u root -A yabsdb < /usr/share/mysql-bit-strings-udf/drop_funcs.sql || exit 1
+
+exit 0

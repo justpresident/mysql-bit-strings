@@ -1,0 +1,4 @@
+create_funcs.sql /usr/share/mysql-bit-strings-udf
+drop_funcs.sql /usr/share/mysql-bit-strings-udf
+libmysql_bit_strings_udf.so /usr/lib
+libmysql_bit_strings_udf.so /usr/lib/mysql/plugin/

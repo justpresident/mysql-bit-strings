@@ -1,0 +1,16 @@
+Source: mysql-bit-strings-udf
+Priority: extra
+Maintainer: Roman Studenikin <justpresident@gmail.com>
+Standards-Version: 3.7.2
+Build-Depends:
+	debhelper (>=7.0.50),
+	libmysqlclient-dev,
+	g++,
+	gawk
+
+Package: mysql-bit-strings-udf
+Architecture: all
+Priority: optional
+Depends:
+	${misc:Depends}
+Description: MySQL user defined functions to operate with bit strings

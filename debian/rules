@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+
+#export DH_VERBOSE=1
+
+%:
+	dh $@
+
+binary: clean
+	dh $@
+
+override_dh_installchangelogs:
+	dh_xinstalldirs
+	dh_xinstall -X.svn/
+	dh_installchangelogs
+
+override_dh_installdeb:
+	dh_installdeb
+	dh_saferm
