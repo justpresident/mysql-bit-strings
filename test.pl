@@ -3,12 +3,24 @@
 use warnings;
 use strict;
 
-use Yabs::CollectBase;
-use Yabs::Logger;
-
 use Test::More;
 
-my $dbh = connect_local({raise_error => 1});
+# FIXME: fix it to connect to your DB
+############################################
+use DBI;
+my $con_params = {
+	db => "example", # FIXME
+	socket => "/var/lib/mysql/mysql.sock", #FIXME
+	user => "root",
+	pass => "",
+};
+my $dbh = DBI->connect(
+	"DBI:mysql:database=$con_params->{db};mysql_socket=$con_params->{socket}",
+	$con_params->{user},
+	$con_params->{pass},
+	{RaiseError => 1}
+);
+############################################
 
 my $STRICT_SIZE_CHECK = 0;
 
