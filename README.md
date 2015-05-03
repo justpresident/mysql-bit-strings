@@ -14,7 +14,7 @@ Install package ```sudo dpkg -i ../mysql-bit-strings-udf_0.01_all.deb```
 
 ### Manual
 Install package build dependencies
-```sudo apt-get install devscripts debhelper libmysqlclient-dev g++ gawk```
+```sudo apt-get install libmysqlclient-dev g++ gawk```
 
 Compile library ```make```
 
