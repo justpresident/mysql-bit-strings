@@ -5,20 +5,20 @@ Provided functions allows you to use strings as long bit arrays. If your applica
 
 # Installation
 ### DEB-file
-Install package build dependencies
+* Install package build dependencies
 ```sudo apt-get install devscripts debhelper libmysqlclient-dev g++ gawk```
 
-Build package ```debuild```
+* Build package ```debuild```
 
-Install package ```sudo dpkg -i ../mysql-bit-strings-udf_0.01_all.deb```
+* Install package ```sudo dpkg -i ../mysql-bit-strings-udf_0.01_all.deb```
 
 ### Manual
-Install package build dependencies
+* Install package build dependencies
 ```sudo apt-get install libmysqlclient-dev g++ gawk```
 
-Compile library ```make```
+* Compile library ```make```
 
-Install it
+* Install it
 ```
 sudo cp libmysql_bit_strings_udf.so /usr/lib
 sudo cp libmysql_bit_strings_udf.so /usr/lib/mysql/plugin/
