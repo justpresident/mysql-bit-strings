@@ -20,6 +20,12 @@ my_bool init_aggr(UDF_INIT *initid, UDF_ARGS *args, char *message) {
 	args->arg_type[0] = STRING_RESULT;
 
 	state = malloc(sizeof(struct udf_string));
+
+	if (state == NULL) {
+		strcpy(message, "Can't allocate buffer in str_*_aggr");
+		return 1;
+	}
+
 	initid->ptr = (char *)state;
 	memset(initid->ptr, 0, sizeof(struct udf_string));
 

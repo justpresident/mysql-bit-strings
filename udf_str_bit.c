@@ -29,7 +29,7 @@ char * str_set_bit(UDF_INIT *initid __attribute__((unused)), UDF_ARGS *args, cha
 char * str_set_bit(UDF_INIT *initid __attribute__((unused)), UDF_ARGS *args, char *result, unsigned long *length, char *is_null __attribute__((unused)), char *error __attribute__((unused))) {
 #endif
 	char *str = args->args[0];
-	unsigned long long bitnum = *((long long *)args->args[1]);
+	unsigned long long bitnum = *((unsigned long long *)args->args[1]);
 
 #ifdef STRICT_SIZE_CHECK
 	if(!str) {
@@ -38,13 +38,13 @@ char * str_set_bit(UDF_INIT *initid __attribute__((unused)), UDF_ARGS *args, cha
 	}
 #endif
 
-	*length = bitnum / 8 + (bitnum % 8 > 0 ? 1 : 0);
-	memset(result, 0, *length);
+	*length = bitnum / 8 + 1;
 #ifdef STRICT_SIZE_CHECK
 	if (args->lengths[0] < *length) {
 		*error = 1;
 	}
 #endif
+	memset(result, 0, *length);
 
 	if (str)
 		memcpy(result, str, args->lengths[0]);
@@ -84,7 +84,7 @@ long long str_get_bit(UDF_INIT *initid __attribute__((unused)), UDF_ARGS *args, 
 	}
 #endif
 
-	if (args->lengths[0] < bitnum / 8 + (bitnum % 8 > 0 ? 1 : 0)) {
+	if (args->lengths[0] < bitnum / 8 + 1) {
 #ifdef STRICT_SIZE_CHECK
 		*error = 1;
 #else
@@ -124,11 +124,13 @@ char * str_or(UDF_INIT *initid __attribute__((unused)), UDF_ARGS *args, char *re
 		return NULL;
 	}
 
+	*length = args->lengths[0] > args->lengths[1] ? args->lengths[0] : args->lengths[1];
+	memset(result, 0, *length);
+
 	memcpy(result, str1, args->lengths[0]);
 	for(i = 0; i < args->lengths[1]; ++i) {
 		result[i] |= str2[i];
 	}
-	*length = args->lengths[0] > args->lengths[1] ? args->lengths[0] : args->lengths[1];
 
 	return result;
 }
@@ -159,11 +161,13 @@ char * str_and(UDF_INIT *initid __attribute__((unused)), UDF_ARGS *args, char *r
 		return NULL;
 	}
 
+	*length = args->lengths[0] > args->lengths[1] ? args->lengths[0] : args->lengths[1];
+	memset(result, 0, *length);
+
 	memcpy(result, str1, args->lengths[0]);
 	for(i = 0; i < args->lengths[1]; ++i) {
 		result[i] &= str2[i];
 	}
-	*length = args->lengths[0] > args->lengths[1] ? args->lengths[0] : args->lengths[1];
 
 	return result;
 }

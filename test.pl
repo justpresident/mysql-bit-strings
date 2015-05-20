@@ -94,5 +94,31 @@ for my $i (0..17) {
 	is($res, $expected->{$i} ? 1 : 0, "bit $i in str_and_aggr is ". ($expected->{$i} || 0));
 }
 
+
+######################################
+# compatibility with perl vec function
+my $null16 = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+for my $i (0..127 ) {
+
+	my $str = $null16;
+	vec($str, $i, 1) = 1;
+
+	my $another_str = $null16;
+	vec($another_str, $i+1, 1) = 1;
+
+	my ($res2) = $dbh->selectrow_array("select str_get_bit(" . $dbh->quote($str) .  ", $i)");
+	ok($res2, "str_get_bit gets a bit set by vec(str, num) = 1 for num = $i");
+
+	my ($res3) = $dbh->selectrow_array("select str_get_bit(" . $dbh->quote($another_str) .  ", $i)");
+	ok(!$res3, "str_get_bit does not get bit num when num+1 is set by vec() for num = $i");
+
+	my ($res4) = $dbh->selectrow_array("select str_set_bit(" . $dbh->quote($null16) . ", $i)");
+	ok(vec($res4, $i, 1), "str_set_bit sets a bit which is accessible by  vec(str, num) for num = $i");
+
+	diag sprintf("str1 for num $i: %s", unpack("b*", $str));
+	diag sprintf("res4 for num $i: %s", unpack("b*", $res4));
+}
+
+
 done_testing();
 
