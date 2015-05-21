@@ -1,3 +1,9 @@
+mysql-bit-strings-udf (0.02) precise; urgency=low
+
+  * fix wrong result length calculation
+
+ -- Roman Studenikin <italiano@yandex-team.ru>  Thu, 21 May 2015 08:18:19 +0300
+
 mysql-bit-strings-udf (0.01) unstable; urgency=low
 
   * Initial Debian package
