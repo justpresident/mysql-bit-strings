@@ -14,9 +14,9 @@ my_bool init_aggr(UDF_INIT *initid, UDF_ARGS *args, char *message) {
 
 	if (args->arg_count != 1) {
  		strcpy(message, "function requires 1 argument");
-
 		return 1;
 	}
+
 	args->arg_type[0] = STRING_RESULT;
 
 	state = malloc(sizeof(struct udf_string));
@@ -27,13 +27,16 @@ my_bool init_aggr(UDF_INIT *initid, UDF_ARGS *args, char *message) {
 	}
 
 	initid->ptr = (char *)state;
-	memset(initid->ptr, 0, sizeof(struct udf_string));
 
 	return 0;
 }
 
 void clear_aggr(UDF_INIT *initid) {
-	memset(initid->ptr, 0, sizeof(struct udf_string));
+	struct udf_string *state;
+	state = (struct udf_string *)initid->ptr;
+
+	memset(state->str, 0, MAX_LENGTH); // we zero-fill all memory
+	state->length = 1;                 // but return only one zero-byte as a result for no input
 }
 
 void deinit_aggr(UDF_INIT *initid) {
@@ -47,15 +50,14 @@ char *aggr_result(UDF_INIT *initid, char *result, unsigned long *length) {
 	state = (struct udf_string *)initid->ptr;
 
 	*length = state->length;
-	if (*length > 0)
-		memcpy(result, state->str, *length);
+	memcpy(result, state->str, *length);
 
 	return result;
 }
 
 
 // Definition for automatic 'create function' and 'drop function' generation
-// Format: // MYSQL_UDF: <function_name> {string|integer|real|decimal} [aggregate] 
+// Format: // MYSQL_UDF: <function_name> {string|integer|real|decimal} [aggregate]
 
 // MYSQL_UDF: str_or_aggr string aggregate
 my_bool str_or_aggr_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
@@ -73,7 +75,7 @@ void str_or_aggr_clear(UDF_INIT *initid, char *is_null __attribute__((unused)), 
 void str_or_aggr_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null __attribute__((unused)), char *error __attribute__((unused))) {
 	struct udf_string *state;
 	state = (struct udf_string *)initid->ptr;
-	
+
 	char *str = args->args[0];
 	unsigned int i;
 	if (str) {
@@ -102,34 +104,37 @@ void str_and_aggr_deinit(UDF_INIT *initid) {
 
 void str_and_aggr_clear(UDF_INIT *initid, char *is_null __attribute__((unused)), char *error __attribute__((unused))) {
 	clear_aggr(initid);
-	
+
+
 	struct udf_string *state;
 	state = (struct udf_string *)initid->ptr;
-	state->length = MAX_LENGTH + 2; // indicates that we didn't processed any rows yet
+	state->length = MAX_LENGTH + 2; // indicates that we did not process any rows yet
 }
 
 void str_and_aggr_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null __attribute__((unused)), char *error __attribute__((unused))) {
 	struct udf_string *state;
 	state = (struct udf_string *)initid->ptr;
-	
+
 	char *str = args->args[0];
+	unsigned long cur_length = args->lengths[0];
+
+	if (!str) {
+		str = "";
+		cur_length = 0;
+	}
+
 	unsigned int i;
 	if (state->length > MAX_LENGTH) {
 		// just copy first row
-		memcpy(state->str, str, args->lengths[0]);
-		state->length = args->lengths[0];
+		memcpy(state->str, str, cur_length);
+		state->length = cur_length;
 	} else {
-		if (str) {
-			for (i = 0; i < args->lengths[0]; ++i) {
-				state->str[i] &= str[i];
-			}
+		for (i = 0; i < cur_length; ++i) {
+			state->str[i] &= str[i];
 		}
-		if (args->lengths[0] > state->length) {
-			state->length = args->lengths[0];
-		} else {
-			for(i = args->lengths[0]; i < state->length; ++i) {
-				state->str[i] = 0;
-			}
+
+		if (cur_length >= state->length) {
+			state->length = cur_length;
 		}
 	}
 }
@@ -138,10 +143,9 @@ char *str_and_aggr(UDF_INIT *initid, UDF_ARGS *args __attribute__((unused)), cha
 	struct udf_string *state;
 	state = (struct udf_string *)initid->ptr;
 
-	// fix length first(if no rows was processed)
+	// fix length first (return zero string of 1 byte in case of empty input)
 	if (state->length > MAX_LENGTH)
-		state->length = 0;
+		state->length = 1;
 
 	return aggr_result(initid, result, length);
 }
-

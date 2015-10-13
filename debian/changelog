@@ -1,3 +1,15 @@
+mysql-bit-strings-udf (0.03) precise; urgency=low
+
+  * remove compile-time option STRICT_SIZE_CHECK
+  * do not crash mysql server on bad input
+  * consistently treat NULLs as empty strings
+  * bugfix: do not eat tails of input strings in str_set_bit()
+  * bugfix: when calling str_and() and str_and_aggr() on strings of different size, treat non-existant bits of shorter ones as zeroes
+  * tests for all changes from above
+  * and some refactoring
+
+ -- Artyom V. Kireev <breqwas@yandex-team.ru>  Thu, 29 Sep 2015 22:20:00 +0300
+
 mysql-bit-strings-udf (0.02) precise; urgency=low
 
   * fix wrong result length calculation
